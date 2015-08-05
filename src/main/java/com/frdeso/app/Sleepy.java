@@ -39,13 +39,13 @@ import org.apache.hadoop.util.ToolRunner;
 
 import com.google.common.base.Charsets;
 
-public class JobA extends Configured implements Tool {
+public class Sleepy extends Configured implements Tool {
 
   /**
    * Maps words from line of text into 2 key-value pairs; one key-value pair for
    * counting the word, another for counting its length.
    */
-  public static class JobAMapper extends
+  public static class SleepyMapper extends
       Mapper<Object, Text, Text, IntWritable> {
 
     private int sleepDuration;
@@ -58,20 +58,20 @@ public class JobA extends Configured implements Tool {
      *          This will be a line of text coming in from our input file.
      */
     public void map(Object key, Text value, Context context)
-	throws  IOException,InterruptedException {
-	
-	Configuration conf = context.getConfiguration();
-	sleepDuration = Integer.parseInt(conf.get("mapSleepTime"));
-	try
-	{
-		Thread.sleep(sleepDuration * 1000);
+		throws  IOException,InterruptedException {
+		
+		Configuration conf = context.getConfiguration();
+		sleepDuration = Integer.parseInt(conf.get("mapSleepTime"));
+		try
+		{
+			Thread.sleep(sleepDuration * 1000);
+		}
+		catch(InterruptedException e)
+		{
+			System.out.println(e.getMessage());
+		}
+		context.write(value, one );	
 	}
-	catch(InterruptedException e)
-	{
-		System.out.println(e.getMessage());
-	}
-	context.write(value, one );	
-      }
   }
 
   /**
@@ -90,8 +90,8 @@ public class JobA extends Configured implements Tool {
     conf.set("mapSleepTime", args[2]);
     @SuppressWarnings("deprecation")
     Job job = new Job(conf, "joba");
-    job.setJarByClass(JobA.class);
-    job.setMapperClass(JobAMapper.class);
+    job.setJarByClass(Sleepy.class);
+    job.setMapperClass(SleepyMapper.class);
     job.setCombinerClass(Reducer.class);
     job.setReducerClass(Reducer.class);
     job.setOutputKeyClass(Text.class);
@@ -103,10 +103,4 @@ public class JobA extends Configured implements Tool {
 
     return (result ? 0 : 1);
   }
-
-  /**
-   * Only valuable after run() called.
-   * 
-   * @return Returns the mean value.
-   */
 }
